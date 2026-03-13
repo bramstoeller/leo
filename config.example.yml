@@ -1,0 +1,2 @@
+energy_provider: frank_energie
+time_resolution: 15  # minutes: 15 (quarter hour) or 60 (hourly)

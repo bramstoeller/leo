@@ -1,0 +1,90 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "leo"
+version = "0.1.0"
+description = "Local Energy Optimizer — optimize energy consumption using solar panels, home batteries, and hot water boiler based on dynamic energy prices and self-learned predictions."
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.12"
+authors = [{ name = "bstoelle" }]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: End Users/Desktop",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Home Automation",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+]
+dependencies = [
+    "pydantic>=2.10",
+    "pyyaml>=6.0",
+    "requests>=2.32",
+    "structlog>=24.0"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pre-commit>=4.0",
+    "pytest>=8.0",
+    "pytest-asyncio>=0.25",
+    "mypy>=1.14",
+    "ruff>=0.9",
+    "types-PyYAML>=6.0",
+    "types-requests>=2.32",
+]
+
+[project.urls]
+Homepage = "https://github.com/bstoelle/leo"
+Repository = "https://github.com/bstoelle/leo"
+Issues = "https://github.com/bstoelle/leo/issues"
+
+[project.scripts]
+leo = "leo.__main__:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["leo"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 120
+src = [".", "tests"]
+
+[tool.ruff.lint]
+select = [
+    "E",     # pycodestyle errors
+    "W",     # pycodestyle warnings
+    "F",     # pyflakes
+    "I",     # isort
+    "N",     # pep8-naming
+    "UP",    # pyupgrade
+    "B",     # flake8-bugbear
+    "A",     # flake8-builtins
+    "SIM",   # flake8-simplify
+    "TCH",   # flake8-type-checking
+    "RUF",   # ruff-specific rules
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["leo"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+packages = ["leo"]
+mypy_path = ["."]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+addopts = [
+    "--strict-markers",
+    "--strict-config",
+    "-ra",
+]
