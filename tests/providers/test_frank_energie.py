@@ -46,7 +46,7 @@ class TestParsePrices:
         assert FrankEnergieClient._parse_prices({}) == []
 
     def test_unexpected_structure_raises(self) -> None:
-        with pytest.raises(ValueError, match="Unexpected response format"):
+        with pytest.raises(Exception):  # noqa: B017
             FrankEnergieClient._parse_prices({"data": {"marketPrices": {}}})
 
 

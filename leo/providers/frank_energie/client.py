@@ -1,4 +1,4 @@
-from datetime import date, datetime, timedelta
+from datetime import date, timedelta
 from typing import Any
 
 import requests
@@ -8,6 +8,7 @@ from leo.models.energy import EnergyUnit
 from leo.models.price import Currency, EnergyPrice, EnergyPriceSlot
 from leo.models.temporal import TimeResolution
 from leo.providers.client import ProviderClient
+from leo.providers.frank_energie.models import GraphQLResponse
 
 _URL = "https://graphql.frankenergie.nl/"
 
@@ -92,21 +93,17 @@ class FrankEnergieClient(ProviderClient):
     @staticmethod
     def _parse_prices(data: dict[str, Any]) -> list[EnergyPriceSlot]:
         """Parse a GraphQL response into a list of EnergyPriceSlot objects."""
-        if not data.get("data"):
+        response = GraphQLResponse.model_validate(data)
+        if response.data is None:
             return []
-
-        try:
-            entries = data["data"]["marketPrices"]["electricityPrices"]
-        except KeyError as e:
-            raise ValueError(f"Unexpected response format: {data}") from e
 
         return [
             EnergyPriceSlot(
-                timestamp_from=datetime.fromisoformat(e["from"].replace("Z", "+00:00")),
-                timestamp_till=datetime.fromisoformat(e["till"].replace("Z", "+00:00")),
-                price=EnergyPrice(amount=e["allInPrice"], currency=Currency.EUR, energy_unit=EnergyUnit.KWH),
+                timestamp_from=entry.price_from,
+                timestamp_till=entry.price_till,
+                price=EnergyPrice(amount=entry.all_in_price, currency=Currency.EUR, energy_unit=EnergyUnit.KWH),
             )
-            for e in entries
+            for entry in response.data.market_prices.electricity_prices
         ]
 
 
