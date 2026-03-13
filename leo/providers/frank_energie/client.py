@@ -4,8 +4,9 @@ from typing import Any
 import requests
 from pydantic import AwareDatetime
 
-from leo.models.price import Currency, EnergyPrice, EnergyPriceSlot, EnergyUnit
-from leo.models.time import TimeResolution
+from leo.models.energy import EnergyUnit
+from leo.models.price import Currency, EnergyPrice, EnergyPriceSlot
+from leo.models.temporal import TimeResolution
 from leo.providers.client import ProviderClient
 
 _URL = "https://graphql.frankenergie.nl/"

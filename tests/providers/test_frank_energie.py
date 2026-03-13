@@ -8,7 +8,7 @@ import pytest
 
 from leo.models.energy import EnergyUnit
 from leo.models.price import Currency
-from leo.models.time import TimeResolution
+from leo.models.temporal import TimeResolution
 from leo.providers.frank_energie.client import FrankEnergieClient
 
 

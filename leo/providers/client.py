@@ -4,7 +4,7 @@ from datetime import UTC, datetime
 from pydantic import AwareDatetime
 
 from leo.models.price import EnergyPriceSlot
-from leo.models.time import TimeResolution
+from leo.models.temporal import TimeResolution
 
 
 class ProviderClient(ABC):

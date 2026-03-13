@@ -1,7 +1,9 @@
 from enum import StrEnum
 
 from pydantic import AwareDatetime, BaseModel
+
 from leo.models.energy import EnergyUnit
+
 
 class Currency(StrEnum):
     """Currency code with symbol as value."""
@@ -9,6 +11,7 @@ class Currency(StrEnum):
     EUR = "€"
     USD = "$"
     GBP = "£"
+
 
 class EnergyPrice(BaseModel):
     """Price for a specific time range and energy unit."""

@@ -1,6 +1,6 @@
 """Tests for time resolution enum."""
 
-from leo.models.time import TimeResolution
+from leo.models.temporal import TimeResolution
 
 
 class TestTimeResolution:

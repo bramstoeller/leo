@@ -5,7 +5,7 @@ from pathlib import Path
 import yaml
 from pydantic import BaseModel
 
-from leo.models.time import TimeResolution
+from leo.models.temporal import TimeResolution
 from leo.providers import EnergyProvider
 
 DEFAULT_CONFIG_PATH = Path("config.yml")

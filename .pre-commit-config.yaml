@@ -22,4 +22,4 @@ repos:
     hooks:
       - id: mypy
         additional_dependencies: []
-        args: [--strict, --mypy-path=.]
+        args: [--strict]
