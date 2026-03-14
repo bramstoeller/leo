@@ -1,6 +1,6 @@
 """Tests for energy unit enum."""
 
-from leo.models.energy import EnergyUnit
+from leo.models.electrical import EnergyUnit
 
 
 class TestEnergyUnit:

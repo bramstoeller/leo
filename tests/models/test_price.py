@@ -4,7 +4,7 @@ from datetime import UTC, datetime
 
 import pytest
 
-from leo.models.energy import EnergyUnit
+from leo.models.electrical import EnergyUnit
 from leo.models.price import Currency, EnergyPrice, EnergyPriceSlot
 
 

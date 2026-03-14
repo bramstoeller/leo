@@ -2,7 +2,7 @@ from enum import StrEnum
 
 from pydantic import AwareDatetime, BaseModel
 
-from leo.models.energy import EnergyUnit
+from leo.models.electrical import EnergyUnit
 
 
 class Currency(StrEnum):

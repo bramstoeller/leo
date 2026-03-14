@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from datetime import UTC, datetime
+from datetime import datetime
 
 from pydantic import AwareDatetime
 
@@ -7,7 +7,7 @@ from leo.models.price import EnergyPriceSlot
 from leo.models.temporal import TimeResolution
 
 
-class ProviderClient(ABC):
+class PriceProvider(ABC):
     """
     Base class for energy provider clients.
     """
@@ -40,4 +40,4 @@ class ProviderClient(ABC):
         Args:
             time_resolution: Time resolution for the prices.
         """
-        return self.get_prices(datetime.now(UTC), None, time_resolution)
+        return self.get_prices(datetime.now().astimezone(), None, time_resolution)

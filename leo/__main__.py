@@ -2,8 +2,10 @@
 
 import structlog
 
-from leo.config import Config, load_config
-from leo.providers import get_provider_client
+from leo.config import CATEGORIES, Config, SensorConfig, load_config
+from leo.exceptions import FetchError, ParseError
+from leo.meters import get_power_meter
+from leo.prices import get_price_provider
 
 structlog.configure(
     processors=[
@@ -19,30 +21,62 @@ def system_check(config: Config) -> bool:
     ok = True
 
     # Provider client check
-    client = get_provider_client(config.energy_provider)
+    client = get_price_provider(config.energy_provider)
     prices = client.get_future_prices(config.time_resolution)
-    minimum = config.time_resolution.slots_per_day()
     log.info(
         "system_check",
         component="provider_client",
-        provider=config.energy_provider.value,
+        provider=config.energy_provider,
         resolution=config.time_resolution.name,
         prices=len(prices),
-        minimum=minimum,
-        status="ok" if len(prices) >= minimum else "fail",
+        status="ok" if prices else "fail",
     )
-    if len(prices) < minimum:
+    if not prices:
         ok = False
+
+    # Sensor checks
+    for category in CATEGORIES:
+        sensors: list[SensorConfig] = getattr(config, category)
+        for sensor_cfg in sensors:
+            try:
+                meter = get_power_meter(
+                    brand=sensor_cfg.brand,
+                    meter_type=sensor_cfg.meter_type,
+                    host=sensor_cfg.host,
+                    phase=sensor_cfg.phase,
+                )
+                meter.fetch()
+                log.info(
+                    "system_check",
+                    component="sensor",
+                    category=category,
+                    host=sensor_cfg.host,
+                    type=sensor_cfg.meter_type,
+                    status="ok",
+                )
+            except (FetchError, ParseError) as e:
+                log.info(
+                    "system_check",
+                    component="sensor",
+                    category=category,
+                    host=sensor_cfg.host,
+                    type=sensor_cfg.meter_type,
+                    status="fail",
+                    error=str(e),
+                )
+                ok = False
 
     return ok
 
 
 def main() -> None:
     config = load_config()
-    log.info("config loaded", provider=config.energy_provider.value, resolution=config.time_resolution.name)
+    log.info("config_loaded", provider=config.energy_provider, resolution=config.time_resolution.name)
 
     if not system_check(config):
         raise SystemExit(1)
+
+    log.info("system_check_passed")
 
 
 if __name__ == "__main__":

@@ -5,8 +5,7 @@ from pathlib import Path
 import pytest
 import yaml
 
-from leo.config import Config, load_config
-from leo.providers import EnergyProvider
+from leo.config import Config, SensorConfig, load_config
 
 
 @pytest.fixture()
@@ -19,7 +18,7 @@ def config_file(tmp_path: Path) -> Path:
 
 def test_load_config(config_file: Path) -> None:
     config = load_config(config_file)
-    assert config.energy_provider == EnergyProvider.FRANK_ENERGIE
+    assert config.energy_provider == "frank_energie"
 
 
 def test_missing_required_field(tmp_path: Path) -> None:
@@ -37,5 +36,80 @@ def test_invalid_provider(tmp_path: Path) -> None:
 
 
 def test_config_model_direct() -> None:
-    config = Config(energy_provider=EnergyProvider.FRANK_ENERGIE)
+    config = Config(energy_provider="frank_energie")
     assert config.energy_provider == "frank_energie"
+
+
+def test_categories_default_empty() -> None:
+    config = Config(energy_provider="frank_energie")
+    assert config.nett_consumption == []
+    assert config.production == []
+    assert config.batteries == []
+    assert config.boilers == []
+
+
+def test_load_config_with_sensors(tmp_path: Path) -> None:
+    data = {
+        "energy_provider": "frank_energie",
+        "nett_consumption": [
+            {"host": "192.168.1.11", "type": "power_meter", "brand": "homewizard", "meter_type": "p1"}
+        ],
+        "production": [
+            {"host": "192.168.1.10", "type": "power_meter", "brand": "homewizard", "meter_type": "kwh_3phase"}
+        ],
+        "batteries": [
+            {
+                "host": "192.168.1.12",
+                "type": "power_meter",
+                "brand": "homewizard",
+                "meter_type": "kwh_1phase",
+                "phase": 2,
+            }
+        ],
+        "boilers": [
+            {"host": "192.168.1.13", "type": "power_meter", "brand": "homewizard", "meter_type": "power_socket"}
+        ],
+    }
+    path = tmp_path / "config.yml"
+    path.write_text(yaml.dump(data))
+    config = load_config(path)
+
+    assert len(config.production) == 1
+    assert config.production[0].host == "192.168.1.10"
+    assert config.production[0].meter_type == "kwh_3phase"
+
+    assert len(config.batteries) == 1
+    assert config.batteries[0].phase == 2
+
+    assert len(config.boilers) == 1
+    assert config.boilers[0].meter_type == "power_socket"
+
+
+def test_invalid_sensor_type(tmp_path: Path) -> None:
+    data = {
+        "energy_provider": "frank_energie",
+        "production": [
+            {"host": "192.168.1.10", "type": "power_meter", "brand": "homewizard", "meter_type": "nonexistent"}
+        ],
+    }
+    path = tmp_path / "config.yml"
+    path.write_text(yaml.dump(data))
+    with pytest.raises(Exception):  # noqa: B017
+        load_config(path)
+
+
+def test_sensor_missing_host() -> None:
+    with pytest.raises(Exception):  # noqa: B017
+        SensorConfig(type="power_meter", brand="homewizard", meter_type="p1")  # type: ignore[call-arg]
+
+
+def test_sensor_config_direct() -> None:
+    cfg = SensorConfig(host="192.168.1.10", type="power_meter", brand="homewizard", meter_type="kwh_1phase", phase=3)
+    assert cfg.host == "192.168.1.10"
+    assert cfg.meter_type == "kwh_1phase"
+    assert cfg.phase == 3
+
+
+def test_sensor_config_phase_optional() -> None:
+    cfg = SensorConfig(host="192.168.1.10", type="power_meter", brand="homewizard", meter_type="p1")
+    assert cfg.phase is None
