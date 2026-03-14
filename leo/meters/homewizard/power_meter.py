@@ -1,6 +1,5 @@
-import httpx
-
-from leo.exceptions import FetchError, ParseError
+from leo.client import AsyncHttpClient
+from leo.exceptions import ParseError
 from leo.meters.homewizard.models import PowerMeterData
 from leo.meters.power_meter import PowerMeter
 from leo.models.electrical import Energy, EnergyUnit, Power
@@ -8,28 +7,19 @@ from leo.models.electrical import Energy, EnergyUnit, Power
 
 class HomeWizardPowerMeter(PowerMeter):
     def __init__(self, host: str):
+        self._http = AsyncHttpClient()
         self._api_endpoint = f"http://{host}/api/v1/data"
         self._data: PowerMeterData | None = None
 
+    async def close(self) -> None:
+        await self._http.close()
+
     async def fetch(self) -> None:
-        response = await self._fetch()
+        response = await self._http.get(self._api_endpoint)
         try:
             self._data = self._parse(response.json())
         except Exception as e:
             raise ParseError(f"Failed to parse response from {self._api_endpoint}") from e
-
-    async def _fetch(self) -> httpx.Response:
-        try:
-            async with httpx.AsyncClient() as client:
-                response = await client.get(self._api_endpoint)
-                response.raise_for_status()
-                return response
-        except httpx.ConnectError as e:
-            raise FetchError(f"Cannot connect to {self._api_endpoint}") from e
-        except httpx.TimeoutException as e:
-            raise FetchError(f"Connection timed out for {self._api_endpoint}") from e
-        except httpx.HTTPStatusError as e:
-            raise FetchError(f"HTTP error: {e}") from e
 
     def _parse(self, data: dict[str, object]) -> PowerMeterData:
         try:

@@ -1,9 +1,9 @@
 from datetime import date, timedelta
 from typing import Any
 
-import httpx
 from pydantic import AwareDatetime
 
+from leo.client import AsyncHttpClient
 from leo.exceptions import FetchError
 from leo.models.electrical import EnergyUnit
 from leo.models.price import Currency, EnergyPrice, EnergyPriceSlot
@@ -38,12 +38,11 @@ _HEADERS = {
 
 
 class FrankEnergieProvider(PriceProvider):
-    _client: httpx.AsyncClient | None = None
+    def __init__(self) -> None:
+        self._http = AsyncHttpClient(headers=_HEADERS)
 
-    async def _get_client(self) -> httpx.AsyncClient:
-        if self._client is None:
-            self._client = httpx.AsyncClient(headers=_HEADERS)
-        return self._client
+    async def close(self) -> None:
+        await self._http.close()
 
     async def get_prices(
         self,
@@ -83,22 +82,13 @@ class FrankEnergieProvider(PriceProvider):
         return sorted(prices, key=lambda p: p.timestamp_from)
 
     async def _fetch_day(self, day: date, resolution: str) -> list[EnergyPriceSlot]:
-        data = await self._fetch(
-            {
-                "query": _QUERY,
-                "operationName": "MarketPrices",
-                "variables": {"date": day.isoformat(), "resolution": resolution},
-            }
-        )
-        return self._parse(data)
-
-    async def _fetch(self, payload: dict[str, Any]) -> dict[str, Any]:
-        """Send a POST request to the GraphQL endpoint and return the parsed JSON."""
-        client = await self._get_client()
-        resp = await client.post(_API_ENDPOINT, json=payload, timeout=15)
-        resp.raise_for_status()
-        result: dict[str, Any] = resp.json()
-        return result
+        payload = {
+            "query": _QUERY,
+            "operationName": "MarketPrices",
+            "variables": {"date": day.isoformat(), "resolution": resolution},
+        }
+        resp = await self._http.post(_API_ENDPOINT, json=payload)
+        return self._parse(resp.json())
 
     @staticmethod
     def _parse(data: dict[str, Any]) -> list[EnergyPriceSlot]:
