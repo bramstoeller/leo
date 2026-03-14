@@ -1,11 +1,13 @@
 from __future__ import annotations
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from leo.models.electrical import Energy, EnergyUnit, Power, PowerUnit
 
 
 class PowerMeterData(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+
     total_power_import_kwh: float | None = None
     total_power_export_kwh: float | None = None
     active_power_l1_w: float | None = None
@@ -41,6 +43,3 @@ class PowerMeterData(BaseModel):
         if self.active_power_l3_w is None:
             return None
         return Power(value=self.active_power_l3_w, unit=PowerUnit.W)
-
-    class Meta:
-        extra = "ignore"

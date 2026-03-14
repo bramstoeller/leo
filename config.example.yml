@@ -1,28 +1,28 @@
-energy_provider: frank_energie
-time_resolution: 15  # minutes: 15 (quarter hour) or 60 (hourly)
+price_provider: frank_energie
+time_resolution: 15
 
 nett_consumption:
-  - host: hw-p1-meter
-    type: power_meter
+  - sensor_type: power_meter
     brand: homewizard
     meter_type: p1
+    host: hw-p1-meter
 
 production:
-  - host: hw-solar
-    type: power_meter
+  - sensor_type: power_meter
     brand: homewizard
     meter_type: kwh_3phase
+    host: hw-solar
 
 batteries:
-  - host: hw-batteries
-    type: power_meter
+  - sensor_type: power_meter
     brand: homewizard
     meter_type: kwh_1phase
+    host: hw-batteries
     phase: 3
 
 boilers:
-  - host: hw-boiler-hot-water
-    type: power_meter
+  - sensor_type: power_meter
     brand: homewizard
     meter_type: power_socket
+    host: hw-boiler-hot-water
     phase: 3

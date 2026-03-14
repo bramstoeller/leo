@@ -1,7 +1,7 @@
 """Tests for HomeWizard PowerMeterData model."""
 
-from leo.meters.homewizard.models import PowerMeterData
 from leo.models.electrical import Energy, EnergyUnit, Power, PowerUnit
+from leo.sensors.homewizard.models import PowerMeterData
 
 
 class TestTotalImport:

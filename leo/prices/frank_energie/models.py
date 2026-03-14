@@ -1,39 +1,34 @@
-from pydantic import AwareDatetime, BaseModel, Field
+from pydantic import AwareDatetime, BaseModel, ConfigDict, Field
 
 
 class ElectricityPrice(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+
     price_from: AwareDatetime = Field(alias="from")
     price_till: AwareDatetime = Field(alias="till")
     all_in_price: float = Field(alias="allInPrice")
 
-    class Meta:
-        ignore_extra = True
-
 
 class MarketPrices(BaseModel):
-    electricity_prices: list[ElectricityPrice] = Field(alias="electricityPrices")
+    model_config = ConfigDict(extra="ignore")
 
-    class Meta:
-        ignore_extra = True
+    electricity_prices: list[ElectricityPrice] = Field(alias="electricityPrices")
 
 
 class MarketPricesResponse(BaseModel):
-    market_prices: MarketPrices = Field(alias="marketPrices")
+    model_config = ConfigDict(extra="ignore")
 
-    class Meta:
-        ignore_extra = True
+    market_prices: MarketPrices = Field(alias="marketPrices")
 
 
 class Error(BaseModel):
-    message: str
+    model_config = ConfigDict(extra="ignore")
 
-    class Meta:
-        ignore_extra = True
+    message: str
 
 
 class GraphQLResponse(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+
     data: MarketPricesResponse | None
     errors: list[Error] | None = None
-
-    class Meta:
-        ignore_extra = True

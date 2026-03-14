@@ -1,11 +1,8 @@
-from typing import Literal
-
+from leo.prices.config import PriceProviderName
 from leo.prices.provider import PriceProvider
 
-EnergyProvider = Literal["frank_energie"]
 
-
-def get_price_provider(provider: EnergyProvider) -> PriceProvider:
+def get_price_provider(provider: PriceProviderName) -> PriceProvider:
     if provider == "frank_energie":
         from leo.prices.frank_energie.provider import FrankEnergieProvider
 

@@ -1,8 +1,8 @@
 from leo.client import AsyncHttpClient
 from leo.exceptions import ParseError
-from leo.meters.homewizard.models import PowerMeterData
-from leo.meters.power_meter import PowerMeter
 from leo.models.electrical import Energy, EnergyUnit, Power
+from leo.sensors.homewizard.models import PowerMeterData
+from leo.sensors.power_meter import PowerMeter
 
 
 class HomeWizardPowerMeter(PowerMeter):

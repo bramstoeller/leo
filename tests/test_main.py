@@ -1,20 +1,24 @@
 """Tests for system_check sensor verification."""
 
-from typing import Any
+from typing import Any, Literal
 from unittest.mock import AsyncMock, MagicMock, patch
 
 from leo.__main__ import system_check
 from leo.config import Config, SensorConfig
 from leo.exceptions import FetchError
-from leo.meters.homewizard import HomeWizardMeterType
+from leo.sensors.homewizard.config import HomewizardPowerSensor3PhaseConfig
+
+HW3PhaseMeterType = Literal["p1", "kwh_3phase"]
 
 
-def _sensor(host: str, meter_type: HomeWizardMeterType, phase: int | None = None) -> SensorConfig:
-    return SensorConfig(host=host, type="power_meter", brand="homewizard", meter_type=meter_type, phase=phase)
+def _sensor(host: str, meter_type: HW3PhaseMeterType) -> SensorConfig:
+    return HomewizardPowerSensor3PhaseConfig(
+        host=host, sensor_type="power_meter", brand="homewizard", meter_type=meter_type
+    )
 
 
 def _config(**categories: Any) -> Config:
-    return Config(energy_provider="frank_energie", **categories)
+    return Config(price_provider="frank_energie", **categories)
 
 
 class TestSystemCheckSensors:

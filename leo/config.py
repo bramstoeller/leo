@@ -1,33 +1,25 @@
 """Configuration loading from YAML."""
 
 from pathlib import Path
-from typing import Literal
 
 import yaml
 from pydantic import BaseModel
 
-from leo.meters import MeterBrand
-from leo.meters.homewizard import HomeWizardMeterType
 from leo.models.temporal import TimeResolution
-from leo.prices import EnergyProvider
+from leo.prices.config import PriceProviderName
+from leo.sensors.homewizard.config import HomeWizardSensorConfig
 
 DEFAULT_CONFIG_PATH = Path("config.yml")
 
 CATEGORIES = ("nett_consumption", "production", "batteries", "boilers")
 
-SensorType = Literal["power_meter"]
-
-
-class SensorConfig(BaseModel):
-    host: str
-    type: SensorType
-    brand: MeterBrand
-    meter_type: HomeWizardMeterType
-    phase: int | None = None
+# When adding a new brand, add its config type to this union and discriminate on "brand":
+# SensorConfig = Annotated[HomeWizardSensorConfig | OtherBrandConfig, Discriminator("brand")]
+SensorConfig = HomeWizardSensorConfig
 
 
 class Config(BaseModel):
-    energy_provider: EnergyProvider
+    price_provider: PriceProviderName
     time_resolution: TimeResolution = TimeResolution.HOURLY
     nett_consumption: list[SensorConfig] = []
     production: list[SensorConfig] = []
