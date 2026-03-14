@@ -13,7 +13,7 @@ class PriceProvider(ABC):
     """
 
     @abstractmethod
-    def get_prices(
+    async def get_prices(
         self,
         timestamp_from: AwareDatetime,
         timestamp_till: AwareDatetime | None,
@@ -33,11 +33,11 @@ class PriceProvider(ABC):
         """
         pass
 
-    def get_future_prices(self, time_resolution: TimeResolution) -> list[EnergyPriceSlot]:
+    async def get_future_prices(self, time_resolution: TimeResolution) -> list[EnergyPriceSlot]:
         """
         Fetch all available future electricity prices from the provider.
 
         Args:
             time_resolution: Time resolution for the prices.
         """
-        return self.get_prices(datetime.now().astimezone(), None, time_resolution)
+        return await self.get_prices(datetime.now().astimezone(), None, time_resolution)

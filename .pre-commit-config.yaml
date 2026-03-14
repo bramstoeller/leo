@@ -24,7 +24,7 @@ repos:
         additional_dependencies:
           - pydantic>=2.10
           - types-PyYAML>=6.0
-          - types-requests>=2.32
+          - httpx>=0.28
           - structlog>=24.0
           - pytest>=8.0
         args: [--strict]

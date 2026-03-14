@@ -1,4 +1,4 @@
-import requests
+import httpx
 
 from leo.exceptions import FetchError, ParseError
 from leo.meters.homewizard.models import PowerMeterData
@@ -11,23 +11,24 @@ class HomeWizardPowerMeter(PowerMeter):
         self._api_endpoint = f"http://{host}/api/v1/data"
         self._data: PowerMeterData | None = None
 
-    def fetch(self) -> None:
-        response = self._fetch()
+    async def fetch(self) -> None:
+        response = await self._fetch()
         try:
             self._data = self._parse(response.json())
         except Exception as e:
             raise ParseError(f"Failed to parse response from {self._api_endpoint}") from e
 
-    def _fetch(self) -> requests.Response:
+    async def _fetch(self) -> httpx.Response:
         try:
-            response = requests.get(self._api_endpoint)
-            response.raise_for_status()
-            return response
-        except requests.exceptions.ConnectionError as e:
+            async with httpx.AsyncClient() as client:
+                response = await client.get(self._api_endpoint)
+                response.raise_for_status()
+                return response
+        except httpx.ConnectError as e:
             raise FetchError(f"Cannot connect to {self._api_endpoint}") from e
-        except requests.exceptions.Timeout as e:
+        except httpx.TimeoutException as e:
             raise FetchError(f"Connection timed out for {self._api_endpoint}") from e
-        except requests.exceptions.HTTPError as e:
+        except httpx.HTTPStatusError as e:
             raise FetchError(f"HTTP error: {e}") from e
 
     def _parse(self, data: dict[str, object]) -> PowerMeterData:
@@ -36,25 +37,25 @@ class HomeWizardPowerMeter(PowerMeter):
         except Exception as e:
             raise ParseError("Failed to parse power meter data") from e
 
-    def total_import(self, fetch: bool = True) -> Energy | None:
+    async def total_import(self, fetch: bool = True) -> Energy | None:
         if fetch:
-            self.fetch()
+            await self.fetch()
         if self._data is None or self._data.total_power_import_kwh is None:
             return None
         return Energy(value=self._data.total_power_import_kwh, unit=EnergyUnit.KWH)
 
-    def total_export(self, fetch: bool = True) -> Energy | None:
+    async def total_export(self, fetch: bool = True) -> Energy | None:
         if fetch:
-            self.fetch()
+            await self.fetch()
         if self._data is None or self._data.total_power_export_kwh is None:
             return None
         return Energy(value=self._data.total_power_export_kwh, unit=EnergyUnit.KWH)
 
 
 class HomeWizardPowerMeter3Phase(HomeWizardPowerMeter):
-    def power(self, fetch: bool = True) -> tuple[Power | None, Power | None, Power | None]:
+    async def power(self, fetch: bool = True) -> tuple[Power | None, Power | None, Power | None]:
         if fetch:
-            self.fetch()
+            await self.fetch()
         if self._data is None:
             return None, None, None
         return self._data.active_power_l1, self._data.active_power_l2, self._data.active_power_l3
@@ -67,9 +68,9 @@ class HomeWizardPowerMeter1Phase(HomeWizardPowerMeter):
             raise ValueError("Phase must be 1, 2, or 3")
         self.phase = phase
 
-    def power(self, fetch: bool = True) -> tuple[Power | None, Power | None, Power | None]:
+    async def power(self, fetch: bool = True) -> tuple[Power | None, Power | None, Power | None]:
         if fetch:
-            self.fetch()
+            await self.fetch()
         if self._data is None:
             return None, None, None
         result: list[Power | None] = [None, None, None]
@@ -78,7 +79,12 @@ class HomeWizardPowerMeter1Phase(HomeWizardPowerMeter):
 
 
 if __name__ == "__main__":
-    meter = HomeWizardPowerMeter3Phase("192.168.1.19")
-    print(f"Power: {meter.power()}")
-    print(f"Total Import: {meter.total_import()}")
-    print(f"Total Export: {meter.total_export()}")
+    import asyncio
+
+    async def _main() -> None:
+        meter = HomeWizardPowerMeter3Phase("192.168.1.19")
+        print(f"Power: {await meter.power()}")
+        print(f"Total Import: {await meter.total_import()}")
+        print(f"Total Export: {await meter.total_export()}")
+
+    asyncio.run(_main())

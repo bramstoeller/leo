@@ -23,7 +23,7 @@ classifiers = [
 dependencies = [
     "pydantic>=2.10",
     "pyyaml>=6.0",
-    "requests>=2.32",
+    "httpx>=0.28",
     "structlog>=24.0"
 ]
 
@@ -35,7 +35,6 @@ dev = [
     "mypy>=1.14",
     "ruff>=0.9",
     "types-PyYAML>=6.0",
-    "types-requests>=2.32",
 ]
 
 [project.urls]

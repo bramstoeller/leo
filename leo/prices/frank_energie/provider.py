@@ -1,7 +1,7 @@
 from datetime import date, timedelta
 from typing import Any
 
-import requests
+import httpx
 from pydantic import AwareDatetime
 
 from leo.exceptions import FetchError
@@ -30,29 +30,27 @@ _TIME_RESOLUTION_MAPPING = {
     TimeResolution.HOURLY: "PT1H",
 }
 
+_HEADERS = {
+    "Content-Type": "application/json",
+    "x-graphql-client-name": "frank-app",
+    "x-graphql-client-version": "4.13.3",
+}
+
 
 class FrankEnergieProvider(PriceProvider):
-    _session: requests.Session | None = None
+    _client: httpx.AsyncClient | None = None
 
-    def _get_session(self) -> requests.Session:
-        if self._session is None:
-            self._session = requests.Session()
-            self._session.headers.update(
-                {
-                    "Content-Type": "application/json",
-                    "x-graphql-client-name": "frank-app",
-                    "x-graphql-client-version": "4.13.3",
-                }
-            )
-        return self._session
+    async def _get_client(self) -> httpx.AsyncClient:
+        if self._client is None:
+            self._client = httpx.AsyncClient(headers=_HEADERS)
+        return self._client
 
-    def get_prices(
+    async def get_prices(
         self,
         timestamp_from: AwareDatetime,
         timestamp_till: AwareDatetime | None,
         time_resolution: TimeResolution,
     ) -> list[EnergyPriceSlot]:
-        # assert timestamps are timezone-aware
         if timestamp_from.tzinfo is None:
             raise ValueError("timestamp_from must be timezone-aware")
 
@@ -69,10 +67,9 @@ class FrankEnergieProvider(PriceProvider):
         day = timestamp_from.date()
         while timestamp_till is None or day <= timestamp_till.date():
             try:
-                day_prices = self._fetch_day(day, resolution=_TIME_RESOLUTION_MAPPING[time_resolution])
+                day_prices = await self._fetch_day(day, resolution=_TIME_RESOLUTION_MAPPING[time_resolution])
             except FetchError as e:
                 if prices and "No marketprices found" in str(e):
-                    # No prices for this day, but we already have some prices from previous days, so we can stop here
                     break
                 else:
                     raise
@@ -85,8 +82,8 @@ class FrankEnergieProvider(PriceProvider):
 
         return sorted(prices, key=lambda p: p.timestamp_from)
 
-    def _fetch_day(self, day: date, resolution: str) -> list[EnergyPriceSlot]:
-        data = self._fetch(
+    async def _fetch_day(self, day: date, resolution: str) -> list[EnergyPriceSlot]:
+        data = await self._fetch(
             {
                 "query": _QUERY,
                 "operationName": "MarketPrices",
@@ -95,10 +92,10 @@ class FrankEnergieProvider(PriceProvider):
         )
         return self._parse(data)
 
-    def _fetch(self, payload: dict[str, Any]) -> dict[str, Any]:
+    async def _fetch(self, payload: dict[str, Any]) -> dict[str, Any]:
         """Send a POST request to the GraphQL endpoint and return the parsed JSON."""
-        session = self._get_session()
-        resp = session.post(_API_ENDPOINT, json=payload, timeout=15)
+        client = await self._get_client()
+        resp = await client.post(_API_ENDPOINT, json=payload, timeout=15)
         resp.raise_for_status()
         result: dict[str, Any] = resp.json()
         return result
@@ -126,6 +123,11 @@ class FrankEnergieProvider(PriceProvider):
 
 
 if __name__ == "__main__":
-    client = FrankEnergieProvider()
-    for price in client.get_future_prices(TimeResolution.QUARTER_HOUR):
-        print(price)
+    import asyncio
+
+    async def _main() -> None:
+        client = FrankEnergieProvider()
+        for price in await client.get_future_prices(TimeResolution.QUARTER_HOUR):
+            print(price)
+
+    asyncio.run(_main())

@@ -1,5 +1,7 @@
 """Entry point for `python -m leo` and the `leo` console script."""
 
+import asyncio
+
 import structlog
 
 from leo.config import CATEGORIES, Config, SensorConfig, load_config
@@ -16,13 +18,13 @@ structlog.configure(
 log = structlog.get_logger()
 
 
-def system_check(config: Config) -> bool:
+async def system_check(config: Config) -> bool:
     """Run system checks for all components. Returns True if all pass."""
     ok = True
 
     # Provider client check
     client = get_price_provider(config.energy_provider)
-    prices = client.get_future_prices(config.time_resolution)
+    prices = await client.get_future_prices(config.time_resolution)
     log.info(
         "system_check",
         component="provider_client",
@@ -45,7 +47,7 @@ def system_check(config: Config) -> bool:
                     host=sensor_cfg.host,
                     phase=sensor_cfg.phase,
                 )
-                meter.fetch()
+                await meter.fetch()
                 log.info(
                     "system_check",
                     component="sensor",
@@ -69,14 +71,18 @@ def system_check(config: Config) -> bool:
     return ok
 
 
-def main() -> None:
+async def async_main() -> None:
     config = load_config()
     log.info("config_loaded", provider=config.energy_provider, resolution=config.time_resolution.name)
 
-    if not system_check(config):
+    if not await system_check(config):
         raise SystemExit(1)
 
     log.info("system_check_passed")
+
+
+def main() -> None:
+    asyncio.run(async_main())
 
 
 if __name__ == "__main__":

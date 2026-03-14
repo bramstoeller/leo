@@ -48,15 +48,19 @@ class TestParsePrices:
 
 
 class TestGetPrices:
-    def test_filters_by_time_range(self, client: FrankEnergieProvider) -> None:
+    async def test_filters_by_time_range(self, client: FrankEnergieProvider) -> None:
         entries = [
             _entry("2026-03-13T09:00:00Z", "2026-03-13T09:15:00Z", 0.10),
             _entry("2026-03-13T10:00:00Z", "2026-03-13T10:15:00Z", 0.15),
             _entry("2026-03-13T11:00:00Z", "2026-03-13T11:15:00Z", 0.20),
         ]
-        client._fetch_day = lambda day, resolution: FrankEnergieProvider._parse(_api_response(entries))  # type: ignore[method-assign]
 
-        result = client.get_prices(
+        async def mock_fetch_day(day, resolution):  # type: ignore[no-untyped-def]
+            return FrankEnergieProvider._parse(_api_response(entries))
+
+        client._fetch_day = mock_fetch_day  # type: ignore[method-assign]
+
+        result = await client.get_prices(
             timestamp_from=datetime(2026, 3, 13, 10, 0, tzinfo=UTC),
             timestamp_till=datetime(2026, 3, 13, 10, 15, tzinfo=UTC),
             time_resolution=TimeResolution.QUARTER_HOUR,
@@ -65,12 +69,16 @@ class TestGetPrices:
         assert len(result) == 1
         assert result[0].price.amount == 0.15
 
-    def test_stops_on_empty_day(self, client: FrankEnergieProvider) -> None:
+    async def test_stops_on_empty_day(self, client: FrankEnergieProvider) -> None:
         day1_prices = FrankEnergieProvider._parse(_api_response(SAMPLE))
         responses = iter([day1_prices, []])
-        client._fetch_day = lambda day, resolution: next(responses)  # type: ignore[method-assign]
 
-        result = client.get_prices(
+        async def mock_fetch_day(day, resolution):  # type: ignore[no-untyped-def]
+            return next(responses)
+
+        client._fetch_day = mock_fetch_day  # type: ignore[method-assign]
+
+        result = await client.get_prices(
             timestamp_from=datetime(2026, 3, 13, 9, 0, tzinfo=UTC),
             timestamp_till=None,
             time_resolution=TimeResolution.QUARTER_HOUR,
@@ -80,13 +88,17 @@ class TestGetPrices:
 
 
 class TestGetFuturePrices:
-    def test_calls_get_prices_from_now(self, client: FrankEnergieProvider) -> None:
+    async def test_calls_get_prices_from_now(self, client: FrankEnergieProvider) -> None:
         day1_prices = FrankEnergieProvider._parse(
             _api_response([_entry("2099-01-01T12:00:00Z", "2099-01-01T12:15:00Z", 0.15)])
         )
         responses = iter([day1_prices, []])
-        client._fetch_day = lambda day, resolution: next(responses)  # type: ignore[method-assign]
 
-        result = client.get_future_prices(TimeResolution.QUARTER_HOUR)
+        async def mock_fetch_day(day, resolution):  # type: ignore[no-untyped-def]
+            return next(responses)
+
+        client._fetch_day = mock_fetch_day  # type: ignore[method-assign]
+
+        result = await client.get_future_prices(TimeResolution.QUARTER_HOUR)
 
         assert len(result) == 1
