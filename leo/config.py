@@ -5,7 +5,7 @@ from pathlib import Path
 import yaml
 from pydantic import BaseModel
 
-from leo.models.price_provider_config import PriceProviderConfig
+from leo.prices.config import PriceProviderConfig
 from leo.sensors.homewizard.config import HomeWizardSensorConfig
 
 DEFAULT_CONFIG_PATH = Path("config.yml")

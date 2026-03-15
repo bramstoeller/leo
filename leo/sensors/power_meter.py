@@ -1,19 +1,17 @@
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from typing import TYPE_CHECKING
+
+from leo.sensors.sensor import Sensor
 
 if TYPE_CHECKING:
     from leo.models.electrical import Energy, Power
 
 
-class PowerMeter(ABC):
+class PowerMeter(Sensor):
     @abstractmethod
     async def fetch(self) -> None:
-        pass
-
-    @abstractmethod
-    async def sensor_id(self) -> str:
         pass
 
     @abstractmethod

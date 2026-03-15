@@ -5,8 +5,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 from leo.config import Config, SensorConfig, SensorsConfig
 from leo.exceptions import FetchError
-from leo.models.price_provider_config import PriceProviderConfig
 from leo.models.temporal import TimeResolution
+from leo.prices.config import PriceProviderConfig
 from leo.sensors.homewizard.config import HomewizardPowerSensor3PhaseConfig
 from leo.system_check import system_check
 
@@ -44,24 +44,24 @@ class TestSystemCheckSensors:
     @patch("leo.system_check.get_price_provider")
     async def test_no_sensors(self, mock_provider_fn: MagicMock, mock_get_meter: MagicMock) -> None:
         mock_provider_fn.return_value.get_future_prices = AsyncMock(return_value=[MagicMock()])
-        mock_get_meter.return_value.fetch = AsyncMock()
+        mock_get_meter.return_value.sensor_id = AsyncMock(return_value="hw.001")
         assert await system_check(_config()) is True
 
     @patch("leo.system_check.get_power_meter")
     @patch("leo.system_check.get_price_provider")
     async def test_sensor_ok(self, mock_provider_fn: MagicMock, mock_get_meter: MagicMock) -> None:
         mock_provider_fn.return_value.get_future_prices = AsyncMock(return_value=[MagicMock()])
-        mock_get_meter.return_value.fetch = AsyncMock()
+        mock_get_meter.return_value.sensor_id = AsyncMock(return_value="hw.001")
 
         config = _config(production=[_sensor("192.168.1.10", "kwh_3phase")])
         assert await system_check(config) is True
-        assert mock_get_meter.return_value.fetch.call_count == 2  # nett_consumption + production
+        assert mock_get_meter.return_value.sensor_id.call_count == 2  # nett_consumption + production
 
     @patch("leo.system_check.get_power_meter")
     @patch("leo.system_check.get_price_provider")
     async def test_sensor_fetch_fails(self, mock_provider_fn: MagicMock, mock_get_meter: MagicMock) -> None:
         mock_provider_fn.return_value.get_future_prices = AsyncMock(return_value=[MagicMock()])
-        mock_get_meter.return_value.fetch = AsyncMock(side_effect=FetchError("connection refused"))
+        mock_get_meter.return_value.sensor_id = AsyncMock(side_effect=FetchError("connection refused"))
 
         config = _config(production=[_sensor("192.168.1.10", "kwh_3phase")])
         assert await system_check(config) is False
@@ -72,9 +72,9 @@ class TestSystemCheckSensors:
         mock_provider_fn.return_value.get_future_prices = AsyncMock(return_value=[MagicMock()])
 
         ok_meter = MagicMock()
-        ok_meter.fetch = AsyncMock()
+        ok_meter.sensor_id = AsyncMock(return_value="hw.ok")
         fail_meter = MagicMock()
-        fail_meter.fetch = AsyncMock(side_effect=FetchError("connection refused"))
+        fail_meter.sensor_id = AsyncMock(side_effect=FetchError("connection refused"))
         mock_get_meter.side_effect = [ok_meter, fail_meter, ok_meter]
 
         config = _config(

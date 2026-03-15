@@ -6,8 +6,8 @@ import pytest
 import yaml
 
 from leo.config import Config, SensorsConfig, load_config
-from leo.models.price_provider_config import PriceProviderConfig
 from leo.models.temporal import TimeResolution
+from leo.prices.config import PriceProviderConfig
 from leo.sensors.homewizard.config import (
     HomewizardPowerSensor1PhaseConfig,
     HomewizardPowerSensor3PhaseConfig,

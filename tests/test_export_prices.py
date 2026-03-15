@@ -13,7 +13,6 @@ from leo.tools.export_prices import _find_earliest_record, _run
 
 def _slot(dt: datetime, price: float) -> EnergyPriceSlot:
     return EnergyPriceSlot(
-        provider_id="test",
         timestamp_from=dt,
         timestamp_till=dt + timedelta(minutes=15),
         price=EnergyPrice(amount=price, currency=Currency.EUR, energy_unit=EnergyUnit.KWH),
@@ -79,7 +78,7 @@ class TestExportPrices:
         with open(output) as f:
             reader = csv.reader(f)
             header = next(reader)
-            assert header == ["timestamp_from", "timestamp_till", "price"]
+            assert header == ["timestamp_from", "timestamp_till", "price_eur_kwh"]
             rows = list(reader)
 
         assert len(rows) == 2

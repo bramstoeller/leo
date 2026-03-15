@@ -1,8 +1,11 @@
 from __future__ import annotations
 
 from enum import Enum
+from typing import TypeVar
 
 from pydantic import BaseModel
+
+T = TypeVar("T", bound="Measurement")
 
 
 class Unit(Enum):
@@ -43,6 +46,27 @@ class Measurement(BaseModel):
 
     def __str__(self) -> str:
         return f"{self.value} {self.unit}"
+
+    def to(self: T, unit: Unit) -> T:
+        """Convert this measurement to a different unit of the same kind."""
+        if type(self.unit) is not type(unit):
+            raise TypeError(f"Cannot convert {type(self.unit).__name__} to {type(unit).__name__}")
+        return type(self)(value=self.si() / unit.multiplier, unit=unit)
+
+    def __neg__(self: T) -> T:
+        return type(self)(value=-self.value, unit=self.unit)
+
+    def __add__(self: T, other: T) -> T:
+        if type(self) is not type(other):
+            raise TypeError(f"Cannot add {type(other).__name__} to {type(self).__name__}!")
+        total = self.si() + other.si()
+        unit = self.unit if self.unit.multiplier >= other.unit.multiplier else other.unit
+        return type(self)(value=total / unit.multiplier, unit=unit)
+
+    def __sub__(self: T, other: T) -> T:
+        if type(self) is not type(other):
+            raise TypeError(f"Cannot subtract {type(other).__name__} from {type(self).__name__}!")
+        return self + (-other)
 
 
 class Power(Measurement):

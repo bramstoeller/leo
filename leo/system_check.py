@@ -20,6 +20,7 @@ async def _check_provider(config: Config) -> bool:
         prices = await client.get_future_prices(config.price_provider.time_resolution)
         ok = bool(prices)
     except (FetchError, ParseError) as e:
+        prices = []
         ok, error = False, str(e)
 
     pcheck(str(config.price_provider), ok, msg=error)
@@ -35,14 +36,15 @@ async def _check_sensor(category: str, sensor_cfg: SensorConfig) -> bool:
     error = None
     try:
         meter = get_power_meter(**sensor_cfg.model_dump())
-        await meter.fetch()
+        sensor_id = await meter.sensor_id()
         ok = True
     except (FetchError, ParseError) as e:
+        sensor_id = None
         ok, error = False, str(e)
 
     pcheck(str(sensor_cfg), ok, msg=error)
     if ok:
-        log.info("system_check_sensor", category=category, **sensor_cfg.model_dump(), status="ok")
+        log.info("system_check_sensor", category=category, sensor_id=sensor_id, **sensor_cfg.model_dump(), status="ok")
     else:
         log.error("system_check_sensor", category=category, **sensor_cfg.model_dump(), status="fail", error=error)
 

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from leo.models.electrical import Energy, EnergyUnit, Power, PowerUnit
 
@@ -8,7 +8,7 @@ from leo.models.electrical import Energy, EnergyUnit, Power, PowerUnit
 class DeviceInfo(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
-    serial: str
+    serial_number: str = Field(alias="serial")
     product_type: str
     product_name: str
 

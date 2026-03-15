@@ -102,7 +102,6 @@ class FrankEnergieProvider(PriceProvider):
 
         return [
             EnergyPriceSlot(
-                provider_id="frank_energie",
                 timestamp_from=entry.price_from,
                 timestamp_till=entry.price_till,
                 price=EnergyPrice(amount=entry.all_in_price, currency=Currency.EUR, energy_unit=EnergyUnit.KWH),

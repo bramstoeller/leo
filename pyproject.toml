@@ -48,6 +48,7 @@ leo = "leo.__main__:main"
 leo_export_prices = "leo.tools.export_prices:main"
 leo_import_prices = "leo.tools.import_prices:main"
 leo_import_readings = "leo.tools.import_readings:main"
+leo_convert_readings = "leo.tools.convert_homewizard_csv:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["leo"]

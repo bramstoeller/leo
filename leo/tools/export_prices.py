@@ -63,7 +63,7 @@ async def _find_earliest_record(provider: PriceProvider, resolution: TimeResolut
 def _write_csv(output: Path, rows: list[list[str]]) -> None:
     with open(output, "w", newline="") as f:
         writer = csv.writer(f)
-        writer.writerow(["timestamp_from", "timestamp_till", "price"])
+        writer.writerow(["timestamp_from", "timestamp_till", "price_eur_kwh"])
         writer.writerows(rows)
 
 

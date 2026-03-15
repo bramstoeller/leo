@@ -1,33 +1,43 @@
+import structlog
+
 from leo.client import AsyncHttpClient
 from leo.exceptions import ParseError
 from leo.models.electrical import Energy, EnergyUnit, Power, PowerUnit
 from leo.sensors.homewizard.models import DeviceInfo, PowerMeterData
 from leo.sensors.power_meter import PowerMeter
 
+log = structlog.get_logger()
+
 
 class HomeWizardPowerMeter(PowerMeter):
     def __init__(self, host: str):
         self._http = AsyncHttpClient()
-        self._api_base = f"http://{host}/api/v1"
+        self._host_url = f"http://{host}"
         self._data: PowerMeterData | None = None
+        log.debug("homewizard_init", host=host)
 
     async def close(self) -> None:
         await self._http.close()
+        log.debug("homewizard_closed", host=self._host_url)
 
-    async def fetch(self) -> None:
-        response = await self._http.get(f"{self._api_base}/data")
-        try:
-            self._data = PowerMeterData.model_validate(response.json())
-        except Exception as e:
-            raise ParseError(f"Failed to parse response from {self._api_base}/data") from e
-
-    async def sensor_id(self) -> str:
-        response = await self._http.get(self._api_base)
+    async def _get_unique_id(self) -> str:
+        url = f"{self._host_url}/api"
+        response = await self._http.get(url)
         try:
             info = DeviceInfo.model_validate(response.json())
         except Exception as e:
-            raise ParseError(f"Failed to parse device info from {self._api_base}") from e
-        return info.serial
+            raise ParseError(f"Failed to parse device info from {url}") from e
+        log.debug("homewizard_device_info", host=self._host_url, **info.model_dump())
+        return info.serial_number
+
+    async def fetch(self) -> None:
+        url = f"{self._host_url}/api/v1/data"
+        response = await self._http.get(url)
+        try:
+            self._data = PowerMeterData.model_validate(response.json())
+        except Exception as e:
+            raise ParseError(f"Failed to parse response from {url}") from e
+        log.debug("homewizard_fetch", host=self._host_url, **self._data.model_dump())
 
     async def total_import(self, fetch: bool = True) -> Energy | None:
         if fetch:

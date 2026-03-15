@@ -27,7 +27,6 @@ class EnergyPrice(BaseModel):
 class EnergyPriceSlot(BaseModel):
     """Electricity price for 1kWh for a specific time range."""
 
-    provider_id: str
     timestamp_from: AwareDatetime
     timestamp_till: AwareDatetime
     price: EnergyPrice

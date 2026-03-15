@@ -2,7 +2,7 @@ from typing import Annotated, Literal
 
 from pydantic import Discriminator
 
-from leo.models.sensor_config import SensorConfig
+from leo.sensors.config import SensorConfig
 
 
 class HomewizardPowerSensor3PhaseConfig(SensorConfig):
