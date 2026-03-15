@@ -1,28 +1,34 @@
-price_provider: frank_energie
-time_resolution: 15
+price_provider:
+  name: Frank Energie
+  provider: frank_energie
+  time_resolution: 15
 
-nett_consumption:
-  - sensor_type: power_meter
+sensors:
+  nett_consumption:
+    name: P1 Meter
+    sensor_type: power_meter
     brand: homewizard
     meter_type: p1
     host: hw-p1-meter
 
-production:
-  - sensor_type: power_meter
-    brand: homewizard
-    meter_type: kwh_3phase
-    host: hw-solar
+  production:
+    - name: Solar Panels
+      sensor_type: power_meter
+      brand: homewizard
+      meter_type: kwh_3phase
+      host: hw-solar
 
-batteries:
-  - sensor_type: power_meter
-    brand: homewizard
-    meter_type: kwh_1phase
-    host: hw-batteries
-    phase: 3
+  storage:
+    - name: Batteries
+      sensor_type: power_meter
+      brand: homewizard
+      meter_type: kwh_1phase
+      host: hw-batteries
+      phase: 3
 
-boilers:
-  - sensor_type: power_meter
-    brand: homewizard
-    meter_type: power_socket
-    host: hw-boiler-hot-water
-    phase: 3
+    - name: Water Heater
+      sensor_type: power_meter
+      brand: homewizard
+      meter_type: power_socket
+      host: hw-water-heater
+      phase: 3

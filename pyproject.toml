@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "leo"
 version = "0.1.0"
-description = "Local Energy Optimizer — optimize energy consumption using solar panels, home batteries, and hot water boiler based on dynamic energy prices and self-learned predictions."
+description = "Local Energy Optimizer — optimize energy consumption using solar panels, home batteries, and hot water heater based on dynamic energy prices and self-learned predictions."
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.12"
