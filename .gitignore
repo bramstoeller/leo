@@ -5,5 +5,7 @@ dist/
 .pytest_cache/
 .mypy_cache/
 .idea/
+!.idea/runConfigurations/
 config.yml
 .coverage
+data/

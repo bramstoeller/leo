@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "leo"
 version = "0.1.0"
-description = "Local Energy Optimizer — optimize energy consumption using solar panels, home batteries, and hot water heater based on dynamic energy prices and self-learned predictions."
+description = "Local Energy Optimizer - optimize energy consumption using solar panels, home batteries, and hot water heater based on dynamic energy prices and self-learned predictions."
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.12"
@@ -24,7 +24,8 @@ dependencies = [
     "pydantic>=2.10",
     "pyyaml>=6.0",
     "httpx>=0.28",
-    "structlog>=24.0"
+    "structlog>=24.0",
+    "aiosqlite>=0.20"
 ]
 
 [project.optional-dependencies]
@@ -44,6 +45,9 @@ Issues = "https://github.com/bstoelle/leo/issues"
 
 [project.scripts]
 leo = "leo.__main__:main"
+leo_export_prices = "leo.tools.export_prices:main"
+leo_import_prices = "leo.tools.import_prices:main"
+leo_import_readings = "leo.tools.import_readings:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["leo"]
@@ -78,6 +82,10 @@ warn_return_any = true
 warn_unused_configs = true
 packages = ["leo"]
 mypy_path = ["."]
+
+[[tool.mypy.overrides]]
+module = "aiosqlite"
+ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

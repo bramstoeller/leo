@@ -21,6 +21,7 @@ class TestEnergyPrice:
 class TestEnergyPriceSlot:
     def test_str_contains_price(self) -> None:
         slot = EnergyPriceSlot(
+            provider_id="frank_energie",
             timestamp_from=datetime(2026, 3, 13, 10, 0, tzinfo=UTC),
             timestamp_till=datetime(2026, 3, 13, 10, 15, tzinfo=UTC),
             price=EnergyPrice(amount=0.15, currency=Currency.EUR, energy_unit=EnergyUnit.KWH),
@@ -32,6 +33,7 @@ class TestEnergyPriceSlot:
     def test_rejects_naive_timestamps(self) -> None:
         with pytest.raises(ValueError):
             EnergyPriceSlot(
+                provider_id="frank_energie",
                 timestamp_from=datetime(2026, 3, 13, 10, 0),
                 timestamp_till=datetime(2026, 3, 13, 10, 15),
                 price=EnergyPrice(amount=0.15, currency=Currency.EUR, energy_unit=EnergyUnit.KWH),

@@ -1,31 +1,33 @@
 from leo.client import AsyncHttpClient
 from leo.exceptions import ParseError
-from leo.models.electrical import Energy, EnergyUnit, Power
-from leo.sensors.homewizard.models import PowerMeterData
+from leo.models.electrical import Energy, EnergyUnit, Power, PowerUnit
+from leo.sensors.homewizard.models import DeviceInfo, PowerMeterData
 from leo.sensors.power_meter import PowerMeter
 
 
 class HomeWizardPowerMeter(PowerMeter):
     def __init__(self, host: str):
         self._http = AsyncHttpClient()
-        self._api_endpoint = f"http://{host}/api/v1/data"
+        self._api_base = f"http://{host}/api/v1"
         self._data: PowerMeterData | None = None
 
     async def close(self) -> None:
         await self._http.close()
 
     async def fetch(self) -> None:
-        response = await self._http.get(self._api_endpoint)
+        response = await self._http.get(f"{self._api_base}/data")
         try:
-            self._data = self._parse(response.json())
+            self._data = PowerMeterData.model_validate(response.json())
         except Exception as e:
-            raise ParseError(f"Failed to parse response from {self._api_endpoint}") from e
+            raise ParseError(f"Failed to parse response from {self._api_base}/data") from e
 
-    def _parse(self, data: dict[str, object]) -> PowerMeterData:
+    async def sensor_id(self) -> str:
+        response = await self._http.get(self._api_base)
         try:
-            return PowerMeterData.model_validate(data)
+            info = DeviceInfo.model_validate(response.json())
         except Exception as e:
-            raise ParseError("Failed to parse power meter data") from e
+            raise ParseError(f"Failed to parse device info from {self._api_base}") from e
+        return info.serial
 
     async def total_import(self, fetch: bool = True) -> Energy | None:
         if fetch:
@@ -63,8 +65,9 @@ class HomeWizardPowerMeter1Phase(HomeWizardPowerMeter):
             await self.fetch()
         if self._data is None:
             return None, None, None
-        result: list[Power | None] = [None, None, None]
-        result[self.phase - 1] = self._data.active_power_l1
+        zero = Power(value=0, unit=PowerUnit.W)
+        result: list[Power] = [zero, zero, zero]
+        result[self.phase - 1] = self._data.active_power_l1 or zero
         return result[0], result[1], result[2]
 
 

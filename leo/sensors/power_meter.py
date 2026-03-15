@@ -13,6 +13,10 @@ class PowerMeter(ABC):
         pass
 
     @abstractmethod
+    async def sensor_id(self) -> str:
+        pass
+
+    @abstractmethod
     async def power(self, fetch: bool = True) -> tuple[Power | None, Power | None, Power | None]:
         pass
 

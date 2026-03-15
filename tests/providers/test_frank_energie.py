@@ -4,6 +4,7 @@ from datetime import UTC, datetime
 
 import pytest
 
+from leo.exceptions import FetchError
 from leo.models.electrical import EnergyUnit
 from leo.models.price import Currency
 from leo.models.temporal import TimeResolution
@@ -69,12 +70,16 @@ class TestGetPrices:
         assert len(result) == 1
         assert result[0].price.amount == 0.15
 
-    async def test_stops_on_empty_day(self, client: FrankEnergieProvider) -> None:
+    async def test_stops_on_no_marketprices(self, client: FrankEnergieProvider) -> None:
         day1_prices = FrankEnergieProvider._parse(_api_response(SAMPLE))
-        responses = iter([day1_prices, []])
+        call_count = 0
 
         async def mock_fetch_day(day, resolution):  # type: ignore[no-untyped-def]
-            return next(responses)
+            nonlocal call_count
+            call_count += 1
+            if call_count == 1:
+                return day1_prices
+            raise FetchError("No marketprices found")
 
         client._fetch_day = mock_fetch_day  # type: ignore[method-assign]
 
@@ -92,10 +97,14 @@ class TestGetFuturePrices:
         day1_prices = FrankEnergieProvider._parse(
             _api_response([_entry("2099-01-01T12:00:00Z", "2099-01-01T12:15:00Z", 0.15)])
         )
-        responses = iter([day1_prices, []])
+        call_count = 0
 
         async def mock_fetch_day(day, resolution):  # type: ignore[no-untyped-def]
-            return next(responses)
+            nonlocal call_count
+            call_count += 1
+            if call_count == 1:
+                return day1_prices
+            raise FetchError("No marketprices found")
 
         client._fetch_day = mock_fetch_day  # type: ignore[method-assign]
 

@@ -2,7 +2,7 @@
 
 import textwrap
 from enum import StrEnum
-from typing import IO
+from typing import IO, Any
 
 WIDTH = 80
 _BORDER = "=" * WIDTH
@@ -118,14 +118,14 @@ def perror(message: str) -> None:
     pmsg(message, color=Color.RED, style=Style.BOLD)
 
 
-def pval(key: str, value: str, *, color: Color | None = None, style: Style = Style.BOLD) -> None:
+def pval(key: str, value: Any, *, color: Color | None = None, style: Style = Style.BOLD) -> None:
     """Print a key-value pair, left/right aligned with dot fill."""
-    dots_len = WIDTH - len(key) - len(value) - 2  # spaces around dots
+    dots_len = WIDTH - len(key) - len(str(value)) - 2  # spaces around dots
     if dots_len < 2:
         dots_len = 2
     dots = _style("." * dots_len, Style.DIM)
     value_codes = tuple(c for c in (style, color) if c is not None)
-    _print(f"{key} {dots} {_style(value, *value_codes)}")
+    _print(f"{key} {dots} {_style(str(value), *value_codes)}")
 
 
 def ppass(name: str, msg: str | None = None) -> None:

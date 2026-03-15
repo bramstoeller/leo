@@ -5,6 +5,14 @@ from pydantic import BaseModel, ConfigDict
 from leo.models.electrical import Energy, EnergyUnit, Power, PowerUnit
 
 
+class DeviceInfo(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+
+    serial: str
+    product_type: str
+    product_name: str
+
+
 class PowerMeterData(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
