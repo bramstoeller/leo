@@ -88,6 +88,10 @@ mypy_path = ["."]
 module = "aiosqlite"
 ignore_missing_imports = true
 
+[[tool.mypy.overrides]]
+module = "leo.db"
+warn_unused_ignores = false
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 asyncio_mode = "auto"

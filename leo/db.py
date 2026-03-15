@@ -49,10 +49,10 @@ async def get_or_create_provider(db: aiosqlite.Connection, uid: str) -> int:
     cursor = await db.execute("SELECT id FROM providers WHERE uid = ?", (uid,))
     row = await cursor.fetchone()
     if row:
-        return row[0]  # type: ignore[no-any-return]
+        return row[0]  # type: ignore[no-any-return, return-value]
     cursor = await db.execute("INSERT INTO providers (uid) VALUES (?)", (uid,))
     await db.commit()
-    return cursor.lastrowid  # type: ignore[no-any-return]
+    return cursor.lastrowid  # type: ignore[no-any-return, return-value]
 
 
 async def get_or_create_sensor(db: aiosqlite.Connection, uid: str) -> int:
@@ -60,7 +60,7 @@ async def get_or_create_sensor(db: aiosqlite.Connection, uid: str) -> int:
     cursor = await db.execute("SELECT id FROM sensors WHERE uid = ?", (uid,))
     row = await cursor.fetchone()
     if row:
-        return row[0]  # type: ignore[no-any-return]
+        return row[0]  # type: ignore[no-any-return, return-value]
     cursor = await db.execute("INSERT INTO sensors (uid) VALUES (?)", (uid,))
     await db.commit()
-    return cursor.lastrowid  # type: ignore[no-any-return]
+    return cursor.lastrowid  # type: ignore[no-any-return, return-value]
